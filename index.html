@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Breisgauer Flammkuchen – Speisekarte</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #D4AF37; --gold-light: #F0D060; --gold-dark: #A07820;
+    --bg: #0e0e0e; --bg2: #161410; --bg3: #1e1a14;
+    --text: #F0EAD6; --text-muted: #A89870; --border: rgba(212,175,55,0.25);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { background:var(--bg); color:var(--text); font-family:'Crimson Text',serif; min-height:100vh; }
+
+  #lang-screen {
+    position:fixed; inset:0; z-index:1000; background:var(--bg);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    transition:opacity .5s ease;
+  }
+  #lang-screen.hide { opacity:0; pointer-events:none; }
+  .lang-title { font-family:'Cinzel',serif; font-size:.85rem; letter-spacing:.25em; color:var(--text-muted); margin-bottom:36px; text-transform:uppercase; }
+  .lang-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; width:min(90vw,340px); }
+  .lang-btn {
+    background:var(--bg3); border:1px solid var(--border); color:var(--text);
+    font-family:'Cinzel',serif; font-size:.95rem; padding:16px 10px; border-radius:6px;
+    cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:6px; transition:all .2s;
+  }
+  .lang-btn:hover { border-color:var(--gold); color:var(--gold); transform:translateY(-2px); }
+  .lang-btn .flag { font-size:1.8rem; line-height:1; }
+
+  header { background:var(--bg2); border-bottom:1px solid var(--border); padding:20px 16px 14px; text-align:center; position:sticky; top:0; z-index:100; }
+  .header-sub { font-family:'Cinzel',serif; font-size:.65rem; letter-spacing:.3em; color:var(--text-muted); text-transform:uppercase; }
+  .lang-bar { display:flex; justify-content:center; gap:6px; padding:10px 16px 0; flex-wrap:wrap; }
+  .lang-tag { background:transparent; border:1px solid var(--border); color:var(--text-muted); font-family:'Cinzel',serif; font-size:.6rem; letter-spacing:.1em; padding:5px 10px; border-radius:3px; cursor:pointer; transition:all .18s; }
+  .lang-tag.active { background:var(--gold); border-color:var(--gold); color:#0e0e0e; }
+  .lang-tag:hover:not(.active) { border-color:var(--gold); color:var(--gold); }
+
+  .locations { display:flex; justify-content:center; gap:12px; padding:14px 16px; flex-wrap:wrap; border-bottom:1px solid var(--border); }
+  .loc-chip { background:var(--bg3); border:1px solid var(--border); font-family:'Cinzel',serif; font-size:.6rem; letter-spacing:.1em; color:var(--text-muted); padding:6px 14px; border-radius:20px; }
+  .loc-chip span { color:var(--gold); }
+
+  main { max-width:680px; margin:0 auto; padding:0 16px 60px; }
+
+  .section-head { display:flex; align-items:center; gap:12px; margin:32px 0 16px; }
+  .section-head::before, .section-head::after { content:''; flex:1; height:1px; background:var(--border); }
+  .section-label { font-family:'Cinzel',serif; font-size:.75rem; letter-spacing:.25em; color:var(--gold); text-transform:uppercase; white-space:nowrap; padding:0 4px; }
+  .section-note { font-style:italic; color:var(--text-muted); font-size:.9rem; text-align:center; margin:-8px 0 16px; }
+
+  .item { display:flex; justify-content:space-between; align-items:flex-start; padding:11px 0; border-bottom:1px solid rgba(212,175,55,0.08); gap:12px; }
+  .item:last-child { border-bottom:none; }
+  .item-left { flex:1; }
+  .item-name { font-family:'Cinzel',serif; font-size:.88rem; color:var(--text); font-weight:600; line-height:1.3; }
+  .item-desc { font-style:italic; color:var(--text-muted); font-size:.82rem; margin-top:3px; line-height:1.4; }
+  .item-badges { display:flex; gap:5px; margin-top:5px; flex-wrap:wrap; }
+  .badge { font-size:.6rem; font-family:'Cinzel',serif; letter-spacing:.05em; padding:2px 7px; border-radius:2px; text-transform:uppercase; }
+  .badge-veg { background:rgba(80,140,60,0.2); color:#7BC96F; border:1px solid rgba(80,140,60,0.3); }
+  .badge-vegan { background:rgba(60,120,80,0.2); color:#5BC88A; border:1px solid rgba(60,120,80,0.3); }
+  .badge-fish { background:rgba(40,100,160,0.2); color:#6AAEE0; border:1px solid rgba(40,100,160,0.3); }
+  .badge-sweet { background:rgba(160,80,160,0.2); color:#D090D0; border:1px solid rgba(160,80,160,0.3); }
+  .item-price { font-family:'Cinzel',serif; font-size:.9rem; color:var(--gold); white-space:nowrap; font-weight:600; padding-top:2px; }
+
+  .drink-item { display:grid; grid-template-columns:1fr auto; gap:6px; align-items:center; padding:9px 0; border-bottom:1px solid rgba(212,175,55,0.08); font-size:.85rem; }
+  .drink-item:last-child { border-bottom:none; }
+  .drink-name { font-family:'Cinzel',serif; font-size:.82rem; color:var(--text); }
+  .drink-price { color:var(--gold); font-family:'Cinzel',serif; font-size:.82rem; text-align:right; }
+
+  .extras-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:4px 8px; margin-top:8px; }
+  .extra-item { font-size:.75rem; color:var(--text-muted); padding:3px 0; border-bottom:1px solid rgba(212,175,55,0.06); }
+
+  .pizza-toppings { margin-top:12px; }
+  .topping-tier { margin-bottom:10px; }
+  .topping-price-label { font-family:'Cinzel',serif; font-size:.72rem; color:var(--gold); margin-bottom:4px; }
+  .topping-list { display:grid; grid-template-columns:repeat(3,1fr); gap:3px 8px; }
+  .topping-item { font-size:.75rem; color:var(--text-muted); padding:2px 0; }
+
+  footer { text-align:center; padding:30px 16px 40px; border-top:1px solid var(--border); font-size:.78rem; color:var(--text-muted); font-style:italic; }
+  footer a { color:var(--gold); text-decoration:none; }
+  .lang-content { display:none; }
+  .lang-content.active { display:block; }
+  .top-btn { position:fixed; bottom:20px; right:20px; background:var(--gold); color:#0e0e0e; border:none; border-radius:50%; width:42px; height:42px; font-size:1.1rem; cursor:pointer; box-shadow:0 4px 16px rgba(212,175,55,0.4); display:flex; align-items:center; justify-content:center; font-family:'Cinzel',serif; font-weight:700; opacity:0; pointer-events:none; transition:opacity .3s; }
+  .top-btn.visible { opacity:1; pointer-events:all; }
+</style>
+</head>
+<body>
+
+<div id="lang-screen">
+  <div style="font-family:'Cinzel',serif;font-size:1.6rem;color:var(--gold);letter-spacing:.1em;margin-bottom:6px;">BREISGAUER</div>
+  <div style="font-family:'Cinzel',serif;font-size:.95rem;color:var(--text-muted);letter-spacing:.3em;margin-bottom:32px;">FLAMMKUCHEN</div>
+  <p class="lang-title">Bitte wählen Sie Ihre Sprache</p>
+  <div class="lang-grid">
+    <button class="lang-btn" onclick="setLang('de')"><span class="flag">🇩🇪</span>Deutsch</button>
+    <button class="lang-btn" onclick="setLang('en')"><span class="flag">🇬🇧</span>English</button>
+    <button class="lang-btn" onclick="setLang('fr')"><span class="flag">🇫🇷</span>Français</button>
+    <button class="lang-btn" onclick="setLang('it')"><span class="flag">🇮🇹</span>Italiano</button>
+    <button class="lang-btn" onclick="setLang('es')" style="grid-column:1/-1;max-width:160px;margin:0 auto;"><span class="flag">🇪🇸</span>Español</button>
+  </div>
+</div>
+
+<header style="display:none" id="main-header">
+  <div style="font-family:'Cinzel',serif;font-size:1.3rem;color:var(--gold);letter-spacing:.08em;">BREISGAUER FLAMMKUCHEN</div>
+  <div class="header-sub">Das Original</div>
+  <div class="lang-bar">
+    <button class="lang-tag" onclick="setLang('de')">🇩🇪 DE</button>
+    <button class="lang-tag" onclick="setLang('en')">🇬🇧 EN</button>
+    <button class="lang-tag" onclick="setLang('fr')">🇫🇷 FR</button>
+    <button class="lang-tag" onclick="setLang('it')">🇮🇹 IT</button>
+    <button class="lang-tag" onclick="setLang('es')">🇪🇸 ES</button>
+  </div>
+</header>
+
+<div id="locations-bar" style="display:none">
+  <div class="locations">
+    <div class="loc-chip">📍 <span>Munzingerstr. 1</span> — 79111 Haid</div>
+    <div class="loc-chip">📍 <span>Merianstraße 3</span> — 79098 Freiburg</div>
+    <div class="loc-chip">📍 <span>Freiburger Landstr. 35</span> — 79112 Tiengen</div>
+  </div>
+</div>
+
+<main id="main-content" style="display:none">
+
+<!-- ═══════════════════ DEUTSCH ═══════════════════ -->
+<div class="lang-content" id="lang-de">
+  <div class="section-note" style="margin-top:20px">Alle Flammkuchen: oval 36cm · aus frischem Teig mit Crème fraîche, Petersilie & Emmentaler</div>
+
+  <div class="section-head"><span class="section-label">Vorspeisen</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Flammkuchenbrot</div><div class="item-desc">mit Knoblauch und Kräutermischung</div></div><div class="item-price">6,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Rahmkuchen</div><div class="item-desc">nur Crème fraîche</div></div><div class="item-price">7,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Bruschetta Klassisch</div><div class="item-desc">Geröstetes Brot mit frischem Basilikum-Pesto, Cocktailtomaten und Knoblauch</div><div class="item-badges"><span class="badge badge-vegan">Vegan</span></div></div><div class="item-price">9,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Bruschetta Champignons</div><div class="item-desc">Geröstetes Brot mit frischen Champignons und Knoblauch</div><div class="item-badges"><span class="badge badge-vegan">Vegan</span></div></div><div class="item-price">9,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Orientalische Bruschetta mit Hummus</div><div class="item-desc">Geröstetes Brot mit cremigem Hummus, frischem Basilikum-Pesto, Walnuss und Knoblauch</div><div class="item-badges"><span class="badge badge-vegan">Vegan</span></div></div><div class="item-price">9,90 €</div></div>
+
+  <div class="section-head"><span class="section-label">Spezial-Flammkuchen</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Mediterran <span style="font-size:.7rem;color:var(--text-muted);font-style:italic;">Pesto oder Rote-Bete-Sauce</span></div><div class="item-desc">mit Oliven, Tomaten, Artischocken, Zucchini, Schafskäse und Rucola</div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Putenbrustfilet <span style="font-size:.7rem;color:var(--text-muted);font-style:italic;">Pesto oder Rote-Bete-Sauce</span></div><div class="item-desc">mit Champignons, Paprika, Knoblauch, Käse und Rucola</div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Shrimps <span style="font-size:.7rem;color:var(--text-muted);font-style:italic;">Pesto oder Rote-Bete-Sauce</span></div><div class="item-desc">mit Oliven, Paprika, Kartoffeln, Knoblauch, Rote Zwiebeln, Käse und Rucola</div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Lachs <span style="font-size:.7rem;color:var(--text-muted);font-style:italic;">Pesto oder Rote-Bete-Sauce</span></div><div class="item-desc">mit Kartoffeln, Oliven, Lauch, Knoblauch, Käse und Rucola</div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Vier Käse Pesto</div><div class="item-desc">Gorgonzola-Creme, Mozzarella, Gouda, Emmentaler, Haselnüsse, Cocktailtomaten, Rucola</div><div class="item-badges"><span class="badge badge-veg">Vegetarisch</span></div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Vegan Pesto</div><div class="item-desc">Tomatensauce, Kartoffeln, Lauch, Brokkoli, Cocktailtomaten, rote Zwiebeln, Oliven, Knoblauch und Rucola</div><div class="item-badges"><span class="badge badge-vegan">Vegan</span></div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Sami's</div><div class="item-desc">Lachs, Kartoffeln, Lauch, Spinat, Oliven und Knoblauch</div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Huma's</div><div class="item-desc">Putenbrustfilet, Mais, frische Champignons, Paprika, Rosmarin und Knoblauch</div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Muna's</div><div class="item-desc">Speck, Salami, Schinken, frische Champignons und Zwiebeln</div></div><div class="item-price">15,90 €</div></div>
+
+  <div class="section-head"><span class="section-label">Fleisch</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Klassisch</div><div class="item-desc">mit Speck und Zwiebeln</div></div><div class="item-price">11,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Hawaii</div><div class="item-desc">mit Schinken, Zwiebeln und Ananas</div></div><div class="item-price">12,20 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Salami</div><div class="item-desc">mit Zwiebeln und Paprika</div></div><div class="item-price">12,20 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Putenbrustfilet</div><div class="item-desc">mit Rosmarin und Knoblauch</div></div><div class="item-price">12,50 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Broccoli</div><div class="item-desc">mit Speck und roten Zwiebeln</div></div><div class="item-price">12,90 €</div></div>
+
+  <div class="section-head"><span class="section-label">Fisch</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Lachs</div><div class="item-desc">mit Spinat</div><div class="item-badges"><span class="badge badge-fish">Fisch</span></div></div><div class="item-price">12,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Thunfisch</div><div class="item-desc">mit Zwiebeln und Mais</div><div class="item-badges"><span class="badge badge-fish">Fisch</span></div></div><div class="item-price">12,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Shrimps</div><div class="item-desc">mit Cocktailtomaten und Knoblauch</div></div><div class="item-price">12,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Meeresfrüchte</div></div><div class="item-price">12,90 €</div></div>
+
+  <div class="section-head"><span class="section-label">Vegetarisch</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Lauch</div><div class="item-badges"><span class="badge badge-veg">Vegetarisch</span></div></div><div class="item-price">10,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Vegetarisch</div><div class="item-desc">mit Mais, frischen Champignons, Paprika, Zwiebeln und Spinat</div><div class="item-badges"><span class="badge badge-veg">Vegetarisch</span></div></div><div class="item-price">13,20 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Mediterran</div><div class="item-desc">mit Zucchini, Oliven, Artischocken und Tomaten</div><div class="item-badges"><span class="badge badge-veg">Vegetarisch</span></div></div><div class="item-price">13,40 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Kartoffel-Rucola</div><div class="item-badges"><span class="badge badge-veg">Vegetarisch</span></div></div><div class="item-price">11,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Tomate-Mozzarella</div><div class="item-badges"><span class="badge badge-veg">Vegetarisch</span></div></div><div class="item-price">10,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Vegan</div><div class="item-desc">Tomatensoße, Kartoffeln, Lauch, Brokkoli, Cocktailtomaten, rote Zwiebeln, Knoblauch und Rucola</div><div class="item-badges"><span class="badge badge-vegan">Vegan</span></div></div><div class="item-price">15,90 €</div></div>
+
+  <div class="section-head"><span class="section-label">Saison</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Spargel</div><div class="item-desc">mit Schinken</div></div><div class="item-price">12,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Pfifferlinge</div><div class="item-desc">mit Speck</div></div><div class="item-price">12,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Kürbis</div><div class="item-desc">mit Speck und Zwiebeln</div></div><div class="item-price">12,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Feldsalat</div><div class="item-desc">mit Speck und Zwiebeln</div></div><div class="item-price">12,90 €</div></div>
+
+  <div class="section-head"><span class="section-label">Süße Flammkuchen · ø 28cm</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Nutella Erdbeere</div><div class="item-desc">mit Haselnüssen und Puderzucker</div><div class="item-badges"><span class="badge badge-sweet">Süß</span></div></div><div class="item-price">9,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Nutella Mix</div><div class="item-desc">Erdbeeren, Ananas, Bananen mit Haselnüssen und Puderzucker</div><div class="item-badges"><span class="badge badge-sweet">Süß</span></div></div><div class="item-price">10,50 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Apfel-Zimt</div><div class="item-badges"><span class="badge badge-sweet">Süß</span></div></div><div class="item-price">9,50 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Nutella-Banane</div><div class="item-desc">mit Haselnüssen</div><div class="item-badges"><span class="badge badge-sweet">Süß</span></div></div><div class="item-price">9,50 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Nutella Ananas</div><div class="item-desc">mit Haselnüssen</div><div class="item-badges"><span class="badge badge-sweet">Süß</span></div></div><div class="item-price">9,40 €</div></div>
+
+  <div class="section-head"><span class="section-label">Nudelgerichte</span></div>
+  <div class="section-note">Zur Wahl: Spaghetti · Penne · Bandnudeln</div>
+  <div class="item"><div class="item-left"><div class="item-name">Käsespätzle</div></div><div class="item-price">11,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Aglio Olio</div></div><div class="item-price">10,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Bolognese</div></div><div class="item-price">11,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Champignons-Putenbrustfilet</div></div><div class="item-price">12,40 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Meeresfrüchte in Tomatensoße</div></div><div class="item-price">12,40 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Shrimps in Sahnesoße</div><div class="item-desc">mit Knoblauch</div></div><div class="item-price">12,40 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Lachs mit Spinat</div></div><div class="item-price">12,40 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Carbonara</div><div class="item-desc">mit Speck und Zwiebeln</div></div><div class="item-price">12,40 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Vegetarisch</div><div class="item-desc">Knoblauch-Sahnesoße, Zucchini, Artischocken und Champignons</div><div class="item-badges"><span class="badge badge-veg">Vegetarisch</span></div></div><div class="item-price">12,40 €</div></div>
+
+  <div class="section-head"><span class="section-label">Flammrollen &amp; Burger</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Flammrolle</div><div class="item-desc">Crème fraîche, Salami, Käse</div></div><div class="item-price">11,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Flammrolle Vegetarisch</div><div class="item-desc">Crème fraîche, Spinat, Lauch, Mais, Käse</div><div class="item-badges"><span class="badge badge-veg">Vegetarisch</span></div></div><div class="item-price">11,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Pizzarolle</div><div class="item-desc">Tomatensoße, Käse · Wunschzutaten gegen Aufpreis</div></div><div class="item-price">9,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Flammburger Klassisch</div><div class="item-desc">Crème fraîche, frische Champignons, Zwiebeln, Tomaten, Schinken, Speck, Salami und Käse + grüner Salat</div></div><div class="item-price">11,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Flammburger Putenbrustfilet</div><div class="item-desc">Crème fraîche, Tomaten, frische Champignons in Sahnesoße und Käse + grüner Salat</div></div><div class="item-price">11,90 €</div></div>
+
+  <div class="section-head"><span class="section-label">Salate</span></div>
+  <div class="section-note">aus frischem bunten Lollo Salat · Normal / Groß</div>
+  <div class="item"><div class="item-left"><div class="item-name">Grüner Salat</div></div><div class="item-price">5,90 / 7,50 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Gemischter Salat</div><div class="item-desc">mit Karotten, Rotkraut, Gurken und Tomaten</div></div><div class="item-price">7,50 / 9,50 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Gemischter Salat Thunfisch</div><div class="item-desc">mit extra Oliven, Mais und roten Zwiebeln</div></div><div class="item-price">10,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Gemischter Salat mit Putenstreifen</div></div><div class="item-price">10,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Schinken-Schafskäse Salat</div></div><div class="item-price">10,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Tomate-Mozzarella</div><div class="item-desc">mit grünem Salat</div></div><div class="item-price">9,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Extra Dressing</div><div class="item-desc">Balsamica · Joghurt · Knoblauch</div></div><div class="item-price">1,50 €</div></div>
+
+  <div class="section-head"><span class="section-label">Pizza · ø 32cm</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Pizza Margherita</div><div class="item-desc">Pizzateig mit Tomatensoße und Käse nach italienischer Rezeptur</div></div><div class="item-price">9,90 €</div></div>
+  <div class="pizza-toppings">
+    <div class="topping-tier">
+      <div class="topping-price-label">+ 1,30 €</div>
+      <div class="topping-list">
+        <div class="topping-item">Ananas</div><div class="topping-item">Basilikum</div><div class="topping-item">Brokkoli</div>
+        <div class="topping-item">Jalapenos</div><div class="topping-item">Karpern</div><div class="topping-item">Knoblauch</div>
+        <div class="topping-item">Kürbis</div><div class="topping-item">Lauch</div><div class="topping-item">Mais</div>
+        <div class="topping-item">Oliven</div><div class="topping-item">Rote Zwiebeln</div><div class="topping-item">Rucola</div>
+        <div class="topping-item">Spinat</div><div class="topping-item">Zwiebel</div><div class="topping-item">Peperoni</div>
+      </div>
+    </div>
+    <div class="topping-tier">
+      <div class="topping-price-label">+ 1,80 €</div>
+      <div class="topping-list">
+        <div class="topping-item">Artischocken</div><div class="topping-item">Crème fraîche</div><div class="topping-item">Cocktailtomaten</div>
+        <div class="topping-item">Emmentaler</div><div class="topping-item">Champignons</div><div class="topping-item">Gouda</div>
+        <div class="topping-item">Mozzarella</div><div class="topping-item">Paprika</div><div class="topping-item">Salami</div>
+        <div class="topping-item">Schinken</div><div class="topping-item">Speck</div><div class="topping-item">Spargel</div>
+        <div class="topping-item">Tomaten</div><div class="topping-item">Thunfisch</div><div class="topping-item">Zucchini</div>
+      </div>
+    </div>
+    <div class="topping-tier">
+      <div class="topping-price-label">+ 2,20 €</div>
+      <div class="topping-list">
+        <div class="topping-item">Bolognesesoße</div><div class="topping-item">Feldsalat</div><div class="topping-item">Gorgonzola</div>
+        <div class="topping-item">Knoblauchwurst</div><div class="topping-item">Lachs</div><div class="topping-item">Meeresfrüchte</div>
+        <div class="topping-item">Pfifferlinge</div><div class="topping-item">Putenbrustfilet</div><div class="topping-item">Scharfskäse</div>
+        <div class="topping-item">Sardellen</div><div class="topping-item">Shrimps</div><div class="topping-item">Scharfe Salami</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-head"><span class="section-label">Getränke</span></div>
+  <div class="drink-item"><span class="drink-name">Coca Cola, Fanta, Mezzo Mix, Zero, Light</span><span class="drink-price">3,50 €</span></div>
+  <div class="drink-item"><span class="drink-name">VioBio Limo, versch. Sorten</span><span class="drink-price">3,50 €</span></div>
+  <div class="drink-item"><span class="drink-name">Vio Wasser still/spritzig</span><span class="drink-price">3,00 €</span></div>
+  <div class="drink-item"><span class="drink-name">Elephant Bay</span><span class="drink-price">3,90 €</span></div>
+  <div class="drink-item"><span class="drink-name">Fuzetea</span><span class="drink-price">3,90 €</span></div>
+  <div class="drink-item"><span class="drink-name">Eistee</span><span class="drink-price">3,90 €</span></div>
+  <div class="drink-item"><span class="drink-name">Alpirsbacher Alkoholfrei / Pils o. Radler</span><span class="drink-price">3,50 €</span></div>
+  <div class="drink-item"><span class="drink-name">Weizen</span><span class="drink-price">3,90 €</span></div>
+  <div class="drink-item"><span class="drink-name">Almdudler</span><span class="drink-price">3,90 €</span></div>
+</div>
+
+<!-- ═══════════════════ ENGLISH ═══════════════════ -->
+<div class="lang-content" id="lang-en">
+  <div class="section-note" style="margin-top:20px">All Flammkuchen: oval 36cm · fresh dough with crème fraîche, parsley & Emmental</div>
+
+  <div class="section-head"><span class="section-label">Starters</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Flammkuchenbrot</div><div class="item-desc">with garlic and herb mix</div></div><div class="item-price">6,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Rahmkuchen</div><div class="item-desc">crème fraîche only</div></div><div class="item-price">7,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Classic Bruschetta</div><div class="item-desc">Toasted bread with fresh basil pesto, cherry tomatoes and garlic</div><div class="item-badges"><span class="badge badge-vegan">Vegan</span></div></div><div class="item-price">9,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Mushroom Bruschetta</div><div class="item-desc">Toasted bread with fresh mushrooms and garlic</div><div class="item-badges"><span class="badge badge-vegan">Vegan</span></div></div><div class="item-price">9,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Oriental Bruschetta with Hummus</div><div class="item-desc">Toasted bread with creamy hummus, fresh basil pesto, walnuts and garlic</div><div class="item-badges"><span class="badge badge-vegan">Vegan</span></div></div><div class="item-price">9,90 €</div></div>
+
+  <div class="section-head"><span class="section-label">Special Flammkuchen</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Mediterranean <span style="font-size:.7rem;color:var(--text-muted);font-style:italic;">Pesto or Beetroot Sauce</span></div><div class="item-desc">with olives, tomatoes, artichokes, zucchini, sheep's cheese and rocket</div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Turkey Breast <span style="font-size:.7rem;color:var(--text-muted);font-style:italic;">Pesto or Beetroot Sauce</span></div><div class="item-desc">with mushrooms, peppers, garlic, cheese and rocket</div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Shrimps <span style="font-size:.7rem;color:var(--text-muted);font-style:italic;">Pesto or Beetroot Sauce</span></div><div class="item-desc">with olives, peppers, potatoes, garlic, red onions, cheese and rocket</div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Salmon <span style="font-size:.7rem;color:var(--text-muted);font-style:italic;">Pesto or Beetroot Sauce</span></div><div class="item-desc">with potatoes, olives, leek, garlic, cheese and rocket</div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Four Cheese Pesto</div><div class="item-desc">Gorgonzola cream, mozzarella, gouda, emmental, hazelnuts, cherry tomatoes, rocket</div><div class="item-badges"><span class="badge badge-veg">Vegetarian</span></div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Vegan Pesto</div><div class="item-desc">Tomato sauce, potatoes, leek, broccoli, cherry tomatoes, red onions, olives, garlic and rocket</div><div class="item-badges"><span class="badge badge-vegan">Vegan</span></div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Sami's</div><div class="item-desc">Salmon, potatoes, leek, spinach, olives and garlic</div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Huma's</div><div class="item-desc">Turkey breast fillet, corn, fresh mushrooms, peppers, rosemary and garlic</div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Muna's</div><div class="item-desc">Bacon, salami, ham, fresh mushrooms and onions</div></div><div class="item-price">15,90 €</div></div>
+
+  <div class="section-head"><span class="section-label">Meat</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Classic</div><div class="item-desc">with bacon and onions</div></div><div class="item-price">11,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Hawaii</div><div class="item-desc">with ham, onions and pineapple</div></div><div class="item-price">12,20 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Salami</div><div class="item-desc">with onions and peppers</div></div><div class="item-price">12,20 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Turkey Breast Fillet</div><div class="item-desc">with rosemary and garlic</div></div><div class="item-price">12,50 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Broccoli</div><div class="item-desc">with bacon and red onions</div></div><div class="item-price">12,90 €</div></div>
+
+  <div class="section-head"><span class="section-label">Fish</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Salmon</div><div class="item-desc">with spinach</div><div class="item-badges"><span class="badge badge-fish">Fish</span></div></div><div class="item-price">12,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Tuna</div><div class="item-desc">with onions and corn</div><div class="item-badges"><span class="badge badge-fish">Fish</span></div></div><div class="item-price">12,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Shrimps</div><div class="item-desc">with cherry tomatoes and garlic</div></div><div class="item-price">12,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Seafood</div></div><div class="item-price">12,90 €</div></div>
+
+  <div class="section-head"><span class="section-label">Vegetarian</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Leek</div><div class="item-badges"><span class="badge badge-veg">Vegetarian</span></div></div><div class="item-price">10,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Vegetarian</div><div class="item-desc">with corn, fresh mushrooms, peppers, onions and spinach</div><div class="item-badges"><span class="badge badge-veg">Vegetarian</span></div></div><div class="item-price">13,20 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Mediterranean</div><div class="item-desc">with zucchini, olives, artichokes and tomatoes</div><div class="item-badges"><span class="badge badge-veg">Vegetarian</span></div></div><div class="item-price">13,40 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Potato-Rocket</div><div class="item-badges"><span class="badge badge-veg">Vegetarian</span></div></div><div class="item-price">11,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Tomato-Mozzarella</div><div class="item-badges"><span class="badge badge-veg">Vegetarian</span></div></div><div class="item-price">10,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Vegan</div><div class="item-desc">Tomato sauce, potatoes, leek, broccoli, cherry tomatoes, red onions, garlic and rocket</div><div class="item-badges"><span class="badge badge-vegan">Vegan</span></div></div><div class="item-price">15,90 €</div></div>
+
+  <div class="section-head"><span class="section-label">Seasonal</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Asparagus</div><div class="item-desc">with ham</div></div><div class="item-price">12,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Chanterelles</div><div class="item-desc">with bacon</div></div><div class="item-price">12,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Pumpkin</div><div class="item-desc">with bacon and onions</div></div><div class="item-price">12,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Lamb's Lettuce</div><div class="item-desc">with bacon and onions</div></div><div class="item-price">12,90 €</div></div>
+
+  <div class="section-head"><span class="section-label">Sweet Flammkuchen · ø 28cm</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Nutella Strawberry</div><div class="item-desc">with hazelnuts and powdered sugar</div><div class="item-badges"><span class="badge badge-sweet">Sweet</span></div></div><div class="item-price">9,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Nutella Mix</div><div class="item-desc">Strawberries, pineapple, bananas with hazelnuts and powdered sugar</div><div class="item-badges"><span class="badge badge-sweet">Sweet</span></div></div><div class="item-price">10,50 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Apple-Cinnamon</div><div class="item-badges"><span class="badge badge-sweet">Sweet</span></div></div><div class="item-price">9,50 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Nutella-Banana</div><div class="item-desc">with hazelnuts</div><div class="item-badges"><span class="badge badge-sweet">Sweet</span></div></div><div class="item-price">9,50 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Nutella Pineapple</div><div class="item-desc">with hazelnuts</div><div class="item-badges"><span class="badge badge-sweet">Sweet</span></div></div><div class="item-price">9,40 €</div></div>
+
+  <div class="section-head"><span class="section-label">Pasta Dishes</span></div>
+  <div class="section-note">Choice of: Spaghetti · Penne · Tagliatelle</div>
+  <div class="item"><div class="item-left"><div class="item-name">Cheese Noodles</div></div><div class="item-price">11,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Aglio Olio</div></div><div class="item-price">10,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Bolognese</div></div><div class="item-price">11,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Mushroom-Turkey Breast Fillet</div></div><div class="item-price">12,40 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Seafood in Tomato Sauce</div></div><div class="item-price">12,40 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Shrimps in Cream Sauce</div><div class="item-desc">with garlic</div></div><div class="item-price">12,40 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Salmon with Spinach</div></div><div class="item-price">12,40 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Carbonara</div><div class="item-desc">with bacon and onions</div></div><div class="item-price">12,40 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Vegetarian</div><div class="item-desc">Garlic cream sauce, zucchini, artichokes and mushrooms</div><div class="item-badges"><span class="badge badge-veg">Vegetarian</span></div></div><div class="item-price">12,40 €</div></div>
+
+  <div class="section-head"><span class="section-label">Rolls &amp; Burgers</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Flammrolle</div><div class="item-desc">Crème fraîche, salami, cheese</div></div><div class="item-price">11,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Vegetarian Flammrolle</div><div class="item-desc">Crème fraîche, spinach, leek, corn, cheese</div><div class="item-badges"><span class="badge badge-veg">Vegetarian</span></div></div><div class="item-price">11,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Pizzarolle</div><div class="item-desc">Tomato sauce, cheese · extra toppings available</div></div><div class="item-price">9,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Classic Flammburger</div><div class="item-desc">Crème fraîche, fresh mushrooms, onions, tomato, ham, bacon, salami and cheese + green salad</div></div><div class="item-price">11,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Turkey Breast Flammburger</div><div class="item-desc">Crème fraîche, tomatoes, fresh mushrooms in cream sauce and cheese + green salad</div></div><div class="item-price">11,90 €</div></div>
+
+  <div class="section-head"><span class="section-label">Salads</span></div>
+  <div class="section-note">Fresh colourful lollo lettuce · Regular / Large</div>
+  <div class="item"><div class="item-left"><div class="item-name">Green Salad</div></div><div class="item-price">5,90 / 7,50 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Mixed Salad</div><div class="item-desc">with carrots, red cabbage, cucumber and tomatoes</div></div><div class="item-price">7,50 / 9,50 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Mixed Salad Tuna</div><div class="item-desc">with extra olives, corn and red onions</div></div><div class="item-price">10,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Mixed Salad with Turkey Strips</div></div><div class="item-price">10,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Ham &amp; Sheep's Cheese Salad</div></div><div class="item-price">10,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Tomato-Mozzarella</div><div class="item-desc">with green salad</div></div><div class="item-price">9,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Extra Dressing</div><div class="item-desc">Balsamic · Yogurt · Garlic</div></div><div class="item-price">1,50 €</div></div>
+
+  <div class="section-head"><span class="section-label">Pizza · ø 32cm</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Pizza Margherita</div><div class="item-desc">Pizza dough with tomato sauce and cheese</div></div><div class="item-price">9,90 €</div></div>
+  <div class="pizza-toppings">
+    <div class="topping-tier"><div class="topping-price-label">+ 1,30 €</div><div class="topping-list"><div class="topping-item">Pineapple</div><div class="topping-item">Basil</div><div class="topping-item">Broccoli</div><div class="topping-item">Jalapenos</div><div class="topping-item">Capers</div><div class="topping-item">Garlic</div><div class="topping-item">Pumpkin</div><div class="topping-item">Leek</div><div class="topping-item">Corn</div><div class="topping-item">Olives</div><div class="topping-item">Red Onions</div><div class="topping-item">Rocket</div><div class="topping-item">Spinach</div><div class="topping-item">Onion</div><div class="topping-item">Pepperoni</div></div></div>
+    <div class="topping-tier"><div class="topping-price-label">+ 1,80 €</div><div class="topping-list"><div class="topping-item">Artichokes</div><div class="topping-item">Crème fraîche</div><div class="topping-item">Cherry Tomatoes</div><div class="topping-item">Emmental</div><div class="topping-item">Mushrooms</div><div class="topping-item">Gouda</div><div class="topping-item">Mozzarella</div><div class="topping-item">Peppers</div><div class="topping-item">Salami</div><div class="topping-item">Ham</div><div class="topping-item">Bacon</div><div class="topping-item">Asparagus</div><div class="topping-item">Tomatoes</div><div class="topping-item">Tuna</div><div class="topping-item">Zucchini</div></div></div>
+    <div class="topping-tier"><div class="topping-price-label">+ 2,20 €</div><div class="topping-list"><div class="topping-item">Bolognese Sauce</div><div class="topping-item">Lamb's Lettuce</div><div class="topping-item">Gorgonzola</div><div class="topping-item">Garlic Sausage</div><div class="topping-item">Salmon</div><div class="topping-item">Seafood</div><div class="topping-item">Chanterelles</div><div class="topping-item">Turkey Breast</div><div class="topping-item">Hot Cheese</div><div class="topping-item">Anchovies</div><div class="topping-item">Shrimps</div><div class="topping-item">Spicy Salami</div></div></div>
+  </div>
+
+  <div class="section-head"><span class="section-label">Beverages</span></div>
+  <div class="drink-item"><span class="drink-name">Coca Cola, Fanta, Mezzo Mix, Zero, Light</span><span class="drink-price">3,50 €</span></div>
+  <div class="drink-item"><span class="drink-name">VioBio Limo, various flavours</span><span class="drink-price">3,50 €</span></div>
+  <div class="drink-item"><span class="drink-name">Vio Water still/sparkling</span><span class="drink-price">3,00 €</span></div>
+  <div class="drink-item"><span class="drink-name">Elephant Bay</span><span class="drink-price">3,90 €</span></div>
+  <div class="drink-item"><span class="drink-name">Fuzetea</span><span class="drink-price">3,90 €</span></div>
+  <div class="drink-item"><span class="drink-name">Iced Tea</span><span class="drink-price">3,90 €</span></div>
+  <div class="drink-item"><span class="drink-name">Alpirsbacher Alcohol-free / Pils</span><span class="drink-price">3,50 €</span></div>
+  <div class="drink-item"><span class="drink-name">Wheat Beer</span><span class="drink-price">3,90 €</span></div>
+  <div class="drink-item"><span class="drink-name">Almdudler</span><span class="drink-price">3,90 €</span></div>
+</div>
+
+<!-- ═══════════════════ FRANÇAIS ═══════════════════ -->
+<div class="lang-content" id="lang-fr">
+  <div class="section-note" style="margin-top:20px">Tous les Flammkuchen: ovale 36cm · pâte fraîche avec crème fraîche, persil & emmental</div>
+
+  <div class="section-head"><span class="section-label">Entrées</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Flammkuchenbrot</div><div class="item-desc">avec mélange d'ail et d'herbes</div></div><div class="item-price">6,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Rahmkuchen</div><div class="item-desc">uniquement crème fraîche</div></div><div class="item-price">7,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Bruschetta classique</div><div class="item-desc">Pain grillé avec pesto de basilic frais, tomates cerises et ail</div><div class="item-badges"><span class="badge badge-vegan">Végétalien</span></div></div><div class="item-price">9,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Bruschetta Champignons</div><div class="item-desc">Pain grillé avec champignons frais et ail</div><div class="item-badges"><span class="badge badge-vegan">Végétalien</span></div></div><div class="item-price">9,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Bruschetta orientale au Hummus</div><div class="item-desc">Pain grillé avec houmous crémeux, pesto de basilic frais, noix et ail</div><div class="item-badges"><span class="badge badge-vegan">Végétalien</span></div></div><div class="item-price">9,90 €</div></div>
+
+  <div class="section-head"><span class="section-label">Flammkuchen Spéciaux</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Méditerranéen <span style="font-size:.7rem;color:var(--text-muted);font-style:italic;">Pesto ou Sauce Betterave</span></div><div class="item-desc">avec olives, tomates, artichauts, courgettes, fromage de brebis et roquette</div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Filet de dinde <span style="font-size:.7rem;color:var(--text-muted);font-style:italic;">Pesto ou Sauce Betterave</span></div><div class="item-desc">avec champignons, poivrons, ail, fromage et roquette</div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Crevettes <span style="font-size:.7rem;color:var(--text-muted);font-style:italic;">Pesto ou Sauce Betterave</span></div><div class="item-desc">avec olives, poivrons, pommes de terre, ail, oignons rouges, fromage et roquette</div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Saumon <span style="font-size:.7rem;color:var(--text-muted);font-style:italic;">Pesto ou Sauce Betterave</span></div><div class="item-desc">avec pommes de terre, olives, poireaux, ail, fromage et roquette</div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Quatre fromages Pesto</div><div class="item-desc">Crème de gorgonzola, mozzarella, gouda, emmental, noisettes, tomates cerises, roquette</div><div class="item-badges"><span class="badge badge-veg">Végétarien</span></div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Végétalien Pesto</div><div class="item-desc">Sauce tomate, pommes de terre, poireaux, brocoli, tomates cerises, oignons rouges, olives, ail et roquette</div><div class="item-badges"><span class="badge badge-vegan">Végétalien</span></div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Sami's</div><div class="item-desc">Saumon, pommes de terre, poireaux, épinards, olives et ail</div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Huma's</div><div class="item-desc">Filet de poitrine de dinde, maïs, champignons frais, poivrons, romarin et ail</div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Muna's</div><div class="item-desc">Bacon, salami, jambon, champignons frais et oignons</div></div><div class="item-price">15,90 €</div></div>
+
+  <div class="section-head"><span class="section-label">La viande</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Classique</div><div class="item-desc">avec bacon et oignons</div></div><div class="item-price">11,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Hawaii</div><div class="item-desc">avec jambon, oignons et ananas</div></div><div class="item-price">12,20 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Salami</div><div class="item-desc">avec oignons et poivrons</div></div><div class="item-price">12,20 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Filet de poitrine de dinde</div><div class="item-desc">au romarin et à l'ail</div></div><div class="item-price">12,50 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Brocoli</div><div class="item-desc">avec bacon et oignons rouges</div></div><div class="item-price">12,90 €</div></div>
+
+  <div class="section-head"><span class="section-label">Le poisson</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Saumon</div><div class="item-desc">aux épinards</div><div class="item-badges"><span class="badge badge-fish">Poisson</span></div></div><div class="item-price">12,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Thon</div><div class="item-desc">avec oignons et maïs</div><div class="item-badges"><span class="badge badge-fish">Poisson</span></div></div><div class="item-price">12,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Crevettes</div><div class="item-desc">avec tomates cerises et ail</div></div><div class="item-price">12,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Fruits de mer</div></div><div class="item-price">12,90 €</div></div>
+
+  <div class="section-head"><span class="section-label">Végétarien</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Poireau</div><div class="item-badges"><span class="badge badge-veg">Végétarien</span></div></div><div class="item-price">10,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Végétarien</div><div class="item-desc">avec maïs, champignons frais, poivrons, oignons et épinards</div><div class="item-badges"><span class="badge badge-veg">Végétarien</span></div></div><div class="item-price">13,20 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Méditerranéen</div><div class="item-desc">avec courgettes, olives, artichauts et tomates</div><div class="item-badges"><span class="badge badge-veg">Végétarien</span></div></div><div class="item-price">13,40 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Pomme de terre-Roquette</div><div class="item-badges"><span class="badge badge-veg">Végétarien</span></div></div><div class="item-price">11,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Tomate-Mozzarella</div><div class="item-badges"><span class="badge badge-veg">Végétarien</span></div></div><div class="item-price">10,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Végétalien</div><div class="item-desc">Sauce tomate, pommes de terre, poireaux, brocoli, tomates cerises, oignons rouges, ail et roquette</div><div class="item-badges"><span class="badge badge-vegan">Végétalien</span></div></div><div class="item-price">15,90 €</div></div>
+
+  <div class="section-head"><span class="section-label">Saison</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Asperges</div><div class="item-desc">avec jambon</div></div><div class="item-price">12,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Girolles</div><div class="item-desc">avec bacon</div></div><div class="item-price">12,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Citrouille</div><div class="item-desc">avec bacon et oignons</div></div><div class="item-price">12,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Mâche</div><div class="item-desc">avec bacon et oignons</div></div><div class="item-price">12,90 €</div></div>
+
+  <div class="section-head"><span class="section-label">Flammkuchen sucrée · ø 28cm</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Nutella Fraise</div><div class="item-desc">avec noisettes et sucre en poudre</div><div class="item-badges"><span class="badge badge-sweet">Sucré</span></div></div><div class="item-price">9,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Nutella Mix</div><div class="item-desc">Fraises, ananas, bananes avec noisettes et sucre en poudre</div><div class="item-badges"><span class="badge badge-sweet">Sucré</span></div></div><div class="item-price">10,50 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Pomme-Cannelle</div><div class="item-badges"><span class="badge badge-sweet">Sucré</span></div></div><div class="item-price">9,50 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Nutella-Banane</div><div class="item-desc">avec noisettes</div><div class="item-badges"><span class="badge badge-sweet">Sucré</span></div></div><div class="item-price">9,50 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Nutella Ananas</div><div class="item-desc">avec noisettes</div><div class="item-badges"><span class="badge badge-sweet">Sucré</span></div></div><div class="item-price">9,40 €</div></div>
+
+  <div class="section-head"><span class="section-label">Plats de pâtes</span></div>
+  <div class="section-note">Au choix : Spaghetti · Penne · Tagliatelles</div>
+  <div class="item"><div class="item-left"><div class="item-name">Nouilles au fromage</div></div><div class="item-price">11,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Aglio Olio</div></div><div class="item-price">10,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Bolognaise</div></div><div class="item-price">11,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Champignons-Filet de dinde</div></div><div class="item-price">12,40 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Fruits de mer en sauce tomate</div></div><div class="item-price">12,40 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Crevettes à la crème</div><div class="item-desc">à l'ail</div></div><div class="item-price">12,40 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Saumon aux épinards</div></div><div class="item-price">12,40 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Carbonara</div><div class="item-desc">avec bacon et oignons</div></div><div class="item-price">12,40 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Végétarien</div><div class="item-desc">Sauce à la crème et à l'ail, courgettes, artichauts et champignons</div><div class="item-badges"><span class="badge badge-veg">Végétarien</span></div></div><div class="item-price">12,40 €</div></div>
+
+  <div class="section-head"><span class="section-label">Boissons</span></div>
+  <div class="drink-item"><span class="drink-name">Coca Cola, Fanta, Mezzo Mix, Zero, Light</span><span class="drink-price">3,50 €</span></div>
+  <div class="drink-item"><span class="drink-name">VioBio Limo, diverses saveurs</span><span class="drink-price">3,50 €</span></div>
+  <div class="drink-item"><span class="drink-name">Vio Eau plate/gazeuse</span><span class="drink-price">3,00 €</span></div>
+  <div class="drink-item"><span class="drink-name">Elephant Bay</span><span class="drink-price">3,90 €</span></div>
+  <div class="drink-item"><span class="drink-name">Fuzetea</span><span class="drink-price">3,90 €</span></div>
+  <div class="drink-item"><span class="drink-name">Thé glacé</span><span class="drink-price">3,90 €</span></div>
+  <div class="drink-item"><span class="drink-name">Alpirsbacher sans alcool / Pils</span><span class="drink-price">3,50 €</span></div>
+  <div class="drink-item"><span class="drink-name">Bière de blé</span><span class="drink-price">3,90 €</span></div>
+  <div class="drink-item"><span class="drink-name">Almdudler</span><span class="drink-price">3,90 €</span></div>
+</div>
+
+<!-- ═══════════════════ ITALIANO ═══════════════════ -->
+<div class="lang-content" id="lang-it">
+  <div class="section-note" style="margin-top:20px">Tutti i Flammkuchen: ovale 36cm · pasta fresca con crème fraîche, prezzemolo ed emmental</div>
+
+  <div class="section-head"><span class="section-label">Antipasti</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Tarte di pane flambè</div><div class="item-desc">con miscela di aglio ed erbe aromatiche</div></div><div class="item-price">6,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Torta alla crema</div><div class="item-desc">solo crème fraîche</div></div><div class="item-price">7,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Bruschetta classica</div><div class="item-desc">Pane tostato con pesto di basilico fresco, pomodorini e aglio</div><div class="item-badges"><span class="badge badge-vegan">Vegano</span></div></div><div class="item-price">9,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Bruschetta Champignons</div><div class="item-desc">Pane tostato con funghi freschi e aglio</div><div class="item-badges"><span class="badge badge-vegan">Vegano</span></div></div><div class="item-price">9,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Bruschetta orientale con Hummus</div><div class="item-desc">Pane tostato con hummus cremoso, pesto di basilico fresco, noci e aglio</div><div class="item-badges"><span class="badge badge-vegan">Vegano</span></div></div><div class="item-price">9,90 €</div></div>
+
+  <div class="section-head"><span class="section-label">Flammkuchen Speciali</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Mediterraneo <span style="font-size:.7rem;color:var(--text-muted);font-style:italic;">Pesto o Salsa Barbabietola</span></div><div class="item-desc">con olive, pomodori, carciofi, zucchine, formaggio di pecora e rucola</div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Filetto di tacchino <span style="font-size:.7rem;color:var(--text-muted);font-style:italic;">Pesto o Salsa Barbabietola</span></div><div class="item-desc">con funghi, peperoni, aglio, formaggio e rucola</div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Gamberetti <span style="font-size:.7rem;color:var(--text-muted);font-style:italic;">Pesto o Salsa Barbabietola</span></div><div class="item-desc">con olive, peperoni, patate, aglio, cipolle rosse, formaggio e rucola</div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Salmone <span style="font-size:.7rem;color:var(--text-muted);font-style:italic;">Pesto o Salsa Barbabietola</span></div><div class="item-desc">con patate, olive, porri, aglio, formaggio e rucola</div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Quattro formaggi Pesto</div><div class="item-desc">Crema di gorgonzola, mozzarella, gouda, emmental, nocciole, pomodorini, rucola</div><div class="item-badges"><span class="badge badge-veg">Vegetariano</span></div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Vegano Pesto</div><div class="item-desc">Salsa di pomodoro, patate, porri, broccoli, pomodorini, cipolle rosse, olive, aglio e rucola</div><div class="item-badges"><span class="badge badge-vegan">Vegano</span></div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Sami's</div><div class="item-desc">Salmone, patate, porri, spinaci, olive e aglio</div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Huma's</div><div class="item-desc">Filetto di petto di tacchino, mais, funghi freschi, peperoni, rosmarino e aglio</div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Muna's</div><div class="item-desc">Pancetta, salame, prosciutto, funghi freschi e cipolle</div></div><div class="item-price">15,90 €</div></div>
+
+  <div class="section-head"><span class="section-label">Carne</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Classico</div><div class="item-desc">con pancetta e cipolle</div></div><div class="item-price">11,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Hawaii</div><div class="item-desc">con prosciutto, cipolle e ananas</div></div><div class="item-price">12,20 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Salame</div><div class="item-desc">con cipolle e peperoni</div></div><div class="item-price">12,20 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Filetto di petto di tacchino</div><div class="item-desc">con rosmarino e aglio</div></div><div class="item-price">12,50 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Broccoli</div><div class="item-desc">con pancetta e cipolle rosse</div></div><div class="item-price">12,90 €</div></div>
+
+  <div class="section-head"><span class="section-label">Pescare</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Salmone</div><div class="item-desc">con spinaci</div><div class="item-badges"><span class="badge badge-fish">Pesce</span></div></div><div class="item-price">12,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Tonno</div><div class="item-desc">con cipolle e mais</div><div class="item-badges"><span class="badge badge-fish">Pesce</span></div></div><div class="item-price">12,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Gamberetti</div><div class="item-desc">con pomodorini cocktail e aglio</div></div><div class="item-price">12,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Frutti di mare</div></div><div class="item-price">12,90 €</div></div>
+
+  <div class="section-head"><span class="section-label">Vegetariano</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Porri</div><div class="item-badges"><span class="badge badge-veg">Vegetariano</span></div></div><div class="item-price">10,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Vegetariano</div><div class="item-desc">con mais, funghi freschi, peperoni, cipolle e spinaci</div><div class="item-badges"><span class="badge badge-veg">Vegetariano</span></div></div><div class="item-price">13,20 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Mediterraneo</div><div class="item-desc">con zucchine, olive, carciofi e pomodorini</div><div class="item-badges"><span class="badge badge-veg">Vegetariano</span></div></div><div class="item-price">13,40 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Rucola di patate</div><div class="item-badges"><span class="badge badge-veg">Vegetariano</span></div></div><div class="item-price">11,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Mozzarella di pomodoro</div><div class="item-badges"><span class="badge badge-veg">Vegetariano</span></div></div><div class="item-price">10,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Vegano</div><div class="item-desc">Salsa di pomodoro, patate, porri, broccoli, pomodorini, cipolle rosse, aglio e rucola</div><div class="item-badges"><span class="badge badge-vegan">Vegano</span></div></div><div class="item-price">15,90 €</div></div>
+
+  <div class="section-head"><span class="section-label">Stagione</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Asparagi</div><div class="item-desc">con prosciutto</div></div><div class="item-price">12,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Finferli</div><div class="item-desc">con pancetta</div></div><div class="item-price">12,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Zucca</div><div class="item-desc">con pancetta e cipolle</div></div><div class="item-price">12,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Lattuga d'agnello</div><div class="item-desc">con pancetta e cipolle</div></div><div class="item-price">12,90 €</div></div>
+
+  <div class="section-head"><span class="section-label">Tarte dolce flambée · ø 28cm</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Fragola Nutella</div><div class="item-desc">con nocciole e zucchero a velo</div><div class="item-badges"><span class="badge badge-sweet">Dolce</span></div></div><div class="item-price">9,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Miscela di Nutella</div><div class="item-desc">Fragole, ananas, banane con nocciole e zucchero a velo</div><div class="item-badges"><span class="badge badge-sweet">Dolce</span></div></div><div class="item-price">10,50 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Mela e cannella</div><div class="item-badges"><span class="badge badge-sweet">Dolce</span></div></div><div class="item-price">9,50 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Banana Nutella</div><div class="item-desc">con nocciole</div><div class="item-badges"><span class="badge badge-sweet">Dolce</span></div></div><div class="item-price">9,50 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Ananas alla Nutella</div><div class="item-desc">con nocciole</div><div class="item-badges"><span class="badge badge-sweet">Dolce</span></div></div><div class="item-price">9,40 €</div></div>
+
+  <div class="section-head"><span class="section-label">Piatti di pasta</span></div>
+  <div class="section-note">A scelta: Spaghetti · Penne · Tagliatelle</div>
+  <div class="item"><div class="item-left"><div class="item-name">Spätzle al formaggio</div></div><div class="item-price">11,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Aglio Olio</div></div><div class="item-price">10,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Bolognese</div></div><div class="item-price">11,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Funghi-Filetto di tacchino</div></div><div class="item-price">12,40 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Frutti di mare in salsa di pomodoro</div></div><div class="item-price">12,40 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Gamberetti in salsa di panna</div><div class="item-desc">con aglio</div></div><div class="item-price">12,40 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Salmone con spinaci</div></div><div class="item-price">12,40 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Carbonara</div><div class="item-desc">con pancetta e cipolle</div></div><div class="item-price">12,40 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Vegetariano</div><div class="item-desc">Salsa cremosa all'aglio, zucchine, carciofi e funghi</div><div class="item-badges"><span class="badge badge-veg">Vegetariano</span></div></div><div class="item-price">12,40 €</div></div>
+
+  <div class="section-head"><span class="section-label">Bevande</span></div>
+  <div class="drink-item"><span class="drink-name">Coca Cola, Fanta, Mezzo Mix, Zero, Light</span><span class="drink-price">3,50 €</span></div>
+  <div class="drink-item"><span class="drink-name">VioBio Limo, vari gusti</span><span class="drink-price">3,50 €</span></div>
+  <div class="drink-item"><span class="drink-name">Acqua Vio naturale/frizzante</span><span class="drink-price">3,00 €</span></div>
+  <div class="drink-item"><span class="drink-name">Elephant Bay</span><span class="drink-price">3,90 €</span></div>
+  <div class="drink-item"><span class="drink-name">Fuzetea</span><span class="drink-price">3,90 €</span></div>
+  <div class="drink-item"><span class="drink-name">Tè freddo</span><span class="drink-price">3,90 €</span></div>
+  <div class="drink-item"><span class="drink-name">Alpirsbacher analcolico / Pils</span><span class="drink-price">3,50 €</span></div>
+  <div class="drink-item"><span class="drink-name">Birra di frumento</span><span class="drink-price">3,90 €</span></div>
+  <div class="drink-item"><span class="drink-name">Almdudler</span><span class="drink-price">3,90 €</span></div>
+</div>
+
+<!-- ═══════════════════ ESPAÑOL ═══════════════════ -->
+<div class="lang-content" id="lang-es">
+  <div class="section-note" style="margin-top:20px">Todos los Flammkuchen: ovalado 36cm · masa fresca con crème fraîche, perejil y emmental</div>
+
+  <div class="section-head"><span class="section-label">Entrantes</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Pan Flammkuchen</div><div class="item-desc">con mezcla de ajo y hierbas</div></div><div class="item-price">6,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Rahmkuchen</div><div class="item-desc">solo crème fraîche</div></div><div class="item-price">7,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Bruschetta Clásica</div><div class="item-desc">Pan tostado con pesto de albahaca fresca, tomates cherry y ajo</div><div class="item-badges"><span class="badge badge-vegan">Vegano</span></div></div><div class="item-price">9,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Bruschetta de Champiñones</div><div class="item-desc">Pan tostado con champiñones frescos y ajo</div><div class="item-badges"><span class="badge badge-vegan">Vegano</span></div></div><div class="item-price">9,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Bruschetta oriental con Hummus</div><div class="item-desc">Pan tostado con hummus cremoso, pesto de albahaca fresca, nueces y ajo</div><div class="item-badges"><span class="badge badge-vegan">Vegano</span></div></div><div class="item-price">9,90 €</div></div>
+
+  <div class="section-head"><span class="section-label">Flammkuchen Especiales</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Mediterráneo <span style="font-size:.7rem;color:var(--text-muted);font-style:italic;">Pesto o Salsa Remolacha</span></div><div class="item-desc">con aceitunas, tomates, alcachofas, calabacín, queso de oveja y rúcula</div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Pechuga de pavo <span style="font-size:.7rem;color:var(--text-muted);font-style:italic;">Pesto o Salsa Remolacha</span></div><div class="item-desc">con champiñones, pimientos, ajo, queso y rúcula</div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Camarones <span style="font-size:.7rem;color:var(--text-muted);font-style:italic;">Pesto o Salsa Remolacha</span></div><div class="item-desc">con aceitunas, pimientos, patatas, ajo, cebolla roja, queso y rúcula</div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Salmón <span style="font-size:.7rem;color:var(--text-muted);font-style:italic;">Pesto o Salsa Remolacha</span></div><div class="item-desc">con patatas, aceitunas, puerros, ajo, queso y rúcula</div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Cuatro quesos Pesto</div><div class="item-desc">Crema de gorgonzola, mozzarella, gouda, emmental, avellanas, tomates cherry, rúcula</div><div class="item-badges"><span class="badge badge-veg">Vegetariano</span></div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Vegano Pesto</div><div class="item-desc">Salsa de tomate, patatas, puerros, brócoli, tomates cherry, cebolla roja, aceitunas, ajo y rúcula</div><div class="item-badges"><span class="badge badge-vegan">Vegano</span></div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Sami's</div><div class="item-desc">Salmón, patatas, puerros, espinacas, aceitunas y ajo</div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Huma's</div><div class="item-desc">Filete de pechuga de pavo, maíz, champiñones frescos, pimientos, romero y ajo</div></div><div class="item-price">15,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Muna's</div><div class="item-desc">Beicon, salami, jamón, champiñones frescos y cebollas</div></div><div class="item-price">15,90 €</div></div>
+
+  <div class="section-head"><span class="section-label">Carne</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Clásico</div><div class="item-desc">con beicon y cebollas</div></div><div class="item-price">11,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Hawaii</div><div class="item-desc">con jamón, cebollas y piña</div></div><div class="item-price">12,20 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Salami</div><div class="item-desc">con cebollas y pimientos</div></div><div class="item-price">12,20 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Filete de pechuga de pavo</div><div class="item-desc">con romero y ajo</div></div><div class="item-price">12,50 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Brócoli</div><div class="item-desc">con beicon y cebollas rojas</div></div><div class="item-price">12,90 €</div></div>
+
+  <div class="section-head"><span class="section-label">Pescado</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Salmón</div><div class="item-desc">con espinacas</div><div class="item-badges"><span class="badge badge-fish">Pescado</span></div></div><div class="item-price">12,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Atún</div><div class="item-desc">con cebollas y maíz</div><div class="item-badges"><span class="badge badge-fish">Pescado</span></div></div><div class="item-price">12,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Camarones</div><div class="item-desc">con tomates cherry y ajo</div></div><div class="item-price">12,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Mariscos</div></div><div class="item-price">12,90 €</div></div>
+
+  <div class="section-head"><span class="section-label">Vegetariano</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Puerro</div><div class="item-badges"><span class="badge badge-veg">Vegetariano</span></div></div><div class="item-price">10,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Vegetariano</div><div class="item-desc">con maíz, champiñones frescos, pimientos, cebollas y espinacas</div><div class="item-badges"><span class="badge badge-veg">Vegetariano</span></div></div><div class="item-price">13,20 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Mediterráneo</div><div class="item-desc">con calabacín, aceitunas, alcachofas y tomates</div><div class="item-badges"><span class="badge badge-veg">Vegetariano</span></div></div><div class="item-price">13,40 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Patata-Rúcula</div><div class="item-badges"><span class="badge badge-veg">Vegetariano</span></div></div><div class="item-price">11,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Tomate-Mozzarella</div><div class="item-badges"><span class="badge badge-veg">Vegetariano</span></div></div><div class="item-price">10,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Vegano</div><div class="item-desc">Salsa de tomate, patatas, puerros, brócoli, tomates cherry, cebolla roja, ajo y rúcula</div><div class="item-badges"><span class="badge badge-vegan">Vegano</span></div></div><div class="item-price">15,90 €</div></div>
+
+  <div class="section-head"><span class="section-label">Temporada</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Espárragos</div><div class="item-desc">con jamón</div></div><div class="item-price">12,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Rebozuelos</div><div class="item-desc">con beicon</div></div><div class="item-price">12,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Calabaza</div><div class="item-desc">con beicon y cebollas</div></div><div class="item-price">12,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Canónigos</div><div class="item-desc">con beicon y cebollas</div></div><div class="item-price">12,90 €</div></div>
+
+  <div class="section-head"><span class="section-label">Flammkuchen dulce · ø 28cm</span></div>
+  <div class="item"><div class="item-left"><div class="item-name">Nutella Fresa</div><div class="item-desc">con avellanas y azúcar glas</div><div class="item-badges"><span class="badge badge-sweet">Dulce</span></div></div><div class="item-price">9,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Nutella Mix</div><div class="item-desc">Fresas, piña, plátanos con avellanas y azúcar glas</div><div class="item-badges"><span class="badge badge-sweet">Dulce</span></div></div><div class="item-price">10,50 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Manzana-Canela</div><div class="item-badges"><span class="badge badge-sweet">Dulce</span></div></div><div class="item-price">9,50 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Nutella-Plátano</div><div class="item-desc">con avellanas</div><div class="item-badges"><span class="badge badge-sweet">Dulce</span></div></div><div class="item-price">9,50 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Nutella Piña</div><div class="item-desc">con avellanas</div><div class="item-badges"><span class="badge badge-sweet">Dulce</span></div></div><div class="item-price">9,40 €</div></div>
+
+  <div class="section-head"><span class="section-label">Platos de pasta</span></div>
+  <div class="section-note">A elegir: Espaguetis · Penne · Tagliatelle</div>
+  <div class="item"><div class="item-left"><div class="item-name">Fideos con queso</div></div><div class="item-price">11,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Aglio Olio</div></div><div class="item-price">10,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Boloñesa</div></div><div class="item-price">11,90 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Champiñones-Pechuga de pavo</div></div><div class="item-price">12,40 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Mariscos en salsa de tomate</div></div><div class="item-price">12,40 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Camarones en salsa de nata</div><div class="item-desc">con ajo</div></div><div class="item-price">12,40 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Salmón con espinacas</div></div><div class="item-price">12,40 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Carbonara</div><div class="item-desc">con beicon y cebollas</div></div><div class="item-price">12,40 €</div></div>
+  <div class="item"><div class="item-left"><div class="item-name">Vegetariano</div><div class="item-desc">Salsa cremosa de ajo, calabacín, alcachofas y champiñones</div><div class="item-badges"><span class="badge badge-veg">Vegetariano</span></div></div><div class="item-price">12,40 €</div></div>
+
+  <div class="section-head"><span class="section-label">Bebidas</span></div>
+  <div class="drink-item"><span class="drink-name">Coca Cola, Fanta, Mezzo Mix, Zero, Light</span><span class="drink-price">3,50 €</span></div>
+  <div class="drink-item"><span class="drink-name">VioBio Limo, varios sabores</span><span class="drink-price">3,50 €</span></div>
+  <div class="drink-item"><span class="drink-name">Agua Vio natural/con gas</span><span class="drink-price">3,00 €</span></div>
+  <div class="drink-item"><span class="drink-name">Elephant Bay</span><span class="drink-price">3,90 €</span></div>
+  <div class="drink-item"><span class="drink-name">Fuzetea</span><span class="drink-price">3,90 €</span></div>
+  <div class="drink-item"><span class="drink-name">Té helado</span><span class="drink-price">3,90 €</span></div>
+  <div class="drink-item"><span class="drink-name">Alpirsbacher sin alcohol / Pils</span><span class="drink-price">3,50 €</span></div>
+  <div class="drink-item"><span class="drink-name">Cerveza de trigo</span><span class="drink-price">3,90 €</span></div>
+  <div class="drink-item"><span class="drink-name">Almdudler</span><span class="drink-price">3,90 €</span></div>
+</div>
+
+</main>
+
+<footer id="main-footer" style="display:none">
+  <p>www.breisgauer-flammkuchen.de &nbsp;·&nbsp; <a href="mailto:brsg.flammkuchen@gmail.com">brsg.flammkuchen@gmail.com</a></p>
+  <p style="margin-top:6px">Alle Preise inkl. MwSt. und Pfand</p>
+</footer>
+
+<button class="top-btn" id="topBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script>
+function setLang(lang) {
+  document.getElementById('lang-screen').classList.add('hide');
+  setTimeout(()=>document.getElementById('lang-screen').style.display='none', 500);
+  document.getElementById('main-header').style.display='block';
+  document.getElementById('locations-bar').style.display='block';
+  document.getElementById('main-content').style.display='block';
+  document.getElementById('main-footer').style.display='block';
+  document.querySelectorAll('.lang-content').forEach(el=>el.classList.remove('active'));
+  const t = document.getElementById('lang-'+lang);
+  if(t) t.classList.add('active');
+  document.querySelectorAll('.lang-tag').forEach(btn=>{
+    btn.classList.toggle('active', btn.textContent.toLowerCase().includes(lang));
+  });
+}
+window.addEventListener('scroll', ()=>{
+  document.getElementById('topBtn').classList.toggle('visible', window.scrollY > 300);
+});
+</script>
+</body>
+</html>
